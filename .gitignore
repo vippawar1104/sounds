@@ -1,0 +1,19 @@
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*$py.class
+.env
+sql_app.db
+
+# Node
+node_modules/
+.next/
+out/
+build/
+.DS_Store
+
+# Other
+*.log
+chroma_db/
