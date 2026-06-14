@@ -3,37 +3,88 @@
 @tailwind utilities;
 
 :root {
-  --background: #0a0a0a;
-  --foreground: #f5f5f5;
-  --card: #111111;
-  --card-foreground: #f5f5f5;
-  --border: #141414;
-  --input: #1a1a1a;
-  --primary: #4ade80;
-  --primary-foreground: #0a0a0a;
-  --muted: #1a1a1a;
-  --muted-foreground: #6b6b6b;
-  --accent: #1a1a1a;
-  --accent-foreground: #f5f5f5;
-  --green: #4ade80;
-  --green-dim: #166534;
-  --ring: #4ade80;
+  --background: #070b10;
+  --foreground: #ecf0f3;
+  --card: #0d131a;
+  --card-foreground: #ecf0f3;
+  --border: rgba(148, 163, 184, 0.16);
+  --input: #0f1722;
+  --primary: #57d18c;
+  --primary-foreground: #04130c;
+  --muted: rgba(148, 163, 184, 0.12);
+  --muted-foreground: #8a95a3;
+  --accent: rgba(87, 209, 140, 0.12);
+  --accent-foreground: #d7f6e6;
+  --green: #57d18c;
+  --green-dim: #184f32;
+  --ring: rgba(87, 209, 140, 0.65);
 }
 
 * { box-sizing: border-box; }
 
+html {
+  background:
+    radial-gradient(circle at top left, rgba(87, 209, 140, 0.14), transparent 24%),
+    radial-gradient(circle at top right, rgba(96, 165, 250, 0.10), transparent 20%),
+    radial-gradient(circle at bottom, rgba(245, 158, 11, 0.08), transparent 18%),
+    var(--background);
+}
+
 body {
   background-color: var(--background);
   color: var(--foreground);
-  font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
 }
 
 ::selection {
-  background: #4ade8033;
+  background: rgba(87, 209, 140, 0.28);
   color: #f5f5f5;
 }
 
-::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 2px; }
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.24);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.36);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+a, button, input, select, textarea {
+  transition-property: color, background-color, border-color, box-shadow, transform, opacity;
+  transition-duration: 140ms;
+  transition-timing-function: ease;
+}
+
+button {
+  cursor: pointer;
+}
+
+input, select, textarea {
+  outline: none;
+}
+
+input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-visible, a:focus-visible {
+  box-shadow: 0 0 0 3px rgba(87, 209, 140, 0.22);
+}
+
+.glass-panel {
+  background: linear-gradient(180deg, rgba(13, 19, 26, 0.92), rgba(10, 15, 22, 0.88));
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.02) inset,
+    0 24px 60px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(16px);
+}
+
+.surface {
+  background: rgba(10, 15, 22, 0.82);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+}

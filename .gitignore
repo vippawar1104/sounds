@@ -6,6 +6,7 @@ __pycache__/
 *$py.class
 .env
 sql_app.db
+*.db
 
 # Node
 node_modules/

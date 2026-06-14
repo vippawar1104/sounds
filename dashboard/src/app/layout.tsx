@@ -4,14 +4,14 @@ import NavSidebar from "./NavSidebar";
 import InterviewLayoutWrapper from "./InterviewLayoutWrapper";
 
 export const metadata: Metadata = {
-  title: "InterviewAI",
-  description: "AI-powered voice interview platform",
+  title: "Sounds Interview Platform",
+  description: "Configure AI interviewers, launch LiveKit sessions, and review transcripts and evaluations.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className="bg-[#0a0a0a] text-[#f5f5f5] flex min-h-screen">
+      <body className="flex min-h-screen bg-[#070b10] text-[#ecf0f3] antialiased">
         <NavSidebar />
         <InterviewLayoutWrapper>{children}</InterviewLayoutWrapper>
       </body>

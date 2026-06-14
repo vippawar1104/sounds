@@ -2,85 +2,100 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import {
+  ArrowUpRight,
+  Bot,
+  Compass,
+  Plus,
+  Settings2,
+  ShieldCheck,
+  Sparkles,
+} from "lucide-react";
 
 const navItems = [
-  {
-    href: "/",
-    label: "Overview",
-    icon: (
-      <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
-          d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-      </svg>
-    ),
-  },
-  {
-    href: "/library",
-    label: "Agents",
-    icon: (
-      <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
-          d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6zM16 7a2 2 0 11-4 0 2 2 0 014 0zM18 11a4 4 0 014 4v1h-4" />
-      </svg>
-    ),
-  },
-  {
-    href: "/create-agent",
-    label: "Create Agent",
-    icon: (
-      <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-      </svg>
-    ),
-  },
+  { href: "/", label: "Overview", icon: Compass },
+  { href: "/library", label: "Agents", icon: Bot },
+  { href: "/create-agent", label: "Create", icon: Plus },
 ];
+
+const quickFacts = [
+  { label: "Runtime", value: "LiveKit room worker" },
+  { label: "LLM", value: "Claude Haiku" },
+  { label: "Voice", value: "ElevenLabs" },
+];
+
+function NavIcon({ icon: Icon, active }: { icon: typeof Compass; active: boolean }) {
+  return <Icon size={15} strokeWidth={active ? 2.2 : 1.9} className={active ? "text-[#57d18c]" : "text-[#8ea0b2]"} />;
+}
 
 export default function NavSidebar() {
   const pathname = usePathname();
   if (pathname.startsWith("/interview")) return null;
 
   return (
-    <aside className="w-52 border-r border-[#1f1f1f] flex flex-col py-6 px-3 bg-[#0a0a0a] sticky top-0 h-screen flex-shrink-0">
-      {/* Logo */}
-      <div className="flex items-center gap-2.5 px-2 mb-8">
-        <div className="w-6 h-6 rounded-md bg-[#4ade80] flex items-center justify-center flex-shrink-0">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"
-              fill="#0a0a0a"/>
-          </svg>
+    <aside className="sticky top-0 flex h-screen w-[292px] flex-col border-r border-white/10 bg-[#060a0f] px-4 py-5">
+      <div className="glass-panel rounded-2xl p-4">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#57d18c] text-[#06110b] shadow-[0_12px_30px_rgba(87,209,140,0.22)]">
+              <Sparkles size={18} strokeWidth={2.25} />
+            </div>
+            <div>
+              <p className="text-sm font-semibold tracking-tight text-[#eef2f5]">Sounds</p>
+              <p className="text-[12px] text-[#8ea0b2]">Interview control plane</p>
+            </div>
+          </div>
+          <span className="inline-flex items-center gap-1 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-300">
+            Live
+          </span>
         </div>
-        <span className="text-sm font-semibold text-white tracking-tight">Sounds</span>
+
+        <div className="mt-4 grid gap-2">
+          {quickFacts.map((item) => (
+            <div key={item.label} className="surface rounded-xl px-3 py-2">
+              <div className="text-[10px] uppercase tracking-[0.18em] text-[#8090a0]">{item.label}</div>
+              <div className="mt-1 text-sm font-medium text-[#eef2f5]">{item.value}</div>
+            </div>
+          ))}
+        </div>
       </div>
 
-      {/* Nav links */}
-      <nav className="flex-1 space-y-0.5">
+      <nav className="mt-5 flex-1 space-y-1">
         {navItems.map(({ href, label, icon }) => {
           const isActive = pathname === href || (href !== "/" && pathname.startsWith(href));
           return (
-            <Link key={href} href={href}
-              className={`flex items-center gap-2.5 px-2.5 py-2 rounded-md text-[13px] font-medium transition-all duration-100 ${
+            <Link
+              key={href}
+              href={href}
+              className={`flex items-center gap-3 rounded-xl px-3 py-3 text-[13px] font-medium ${
                 isActive
-                  ? "bg-[#1a1a1a] text-white"
-                  : "text-[#6b6b6b] hover:text-[#d4d4d4] hover:bg-[#141414]"
-              }`}>
-              <span className={isActive ? "text-[#4ade80]" : ""}>{icon}</span>
-              {label}
+                  ? "bg-white/8 text-white ring-1 ring-white/10"
+                  : "text-[#93a0af] hover:bg-white/4 hover:text-white"
+              }`}
+            >
+              <NavIcon icon={icon} active={isActive} />
+              <span>{label}</span>
             </Link>
           );
         })}
       </nav>
 
-      {/* Bottom */}
-      <div className="border-t border-[#1f1f1f] pt-4">
-        <div className="flex items-center gap-2.5 px-2.5 py-2 text-[13px] text-[#3a3a3a] cursor-not-allowed rounded-md">
-          <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24" className="flex-shrink-0">
-            <path strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
-              d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-            <path strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-          </svg>
-          Settings
-          <span className="ml-auto text-[10px] text-[#3a3a3a] font-medium">Soon</span>
+      <div className="rounded-2xl border border-white/10 bg-white/4 p-4">
+        <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8090a0]">
+          <ShieldCheck size={14} />
+          Operational Notes
         </div>
+        <p className="mt-2 text-sm leading-6 text-[#d8dee5]">
+          Keep keys server-side, dispatch one worker per room, and persist transcript events as they arrive.
+        </p>
+        <Link href="/create-agent" className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-[#57d18c]">
+          Create an agent <ArrowUpRight size={14} />
+        </Link>
+      </div>
+
+      <div className="mt-3 flex items-center gap-2 px-1 text-[12px] text-[#8ea0b2]">
+        <Settings2 size={14} />
+        Settings will land in a later pass.
       </div>
     </aside>
   );
