@@ -1,0 +1,11 @@
+.git
+.venv
+.next
+dashboard/.next
+dashboard/node_modules
+backend/interview.db
+logs
+**/__pycache__
+**/*.pyc
+.env
+dashboard/.env.local
