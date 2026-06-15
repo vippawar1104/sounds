@@ -1,449 +1,159 @@
-<!--BEGIN_BANNER_IMAGE-->
+# Sounds
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="/.github/banner_dark.png">
-  <source media="(prefers-color-scheme: light)" srcset="/.github/banner_light.png">
-  <img style="width:100%;" alt="The LiveKit icon, the name of the repository and some sample code in the background." src="https://raw.githubusercontent.com/livekit/agents/main/.github/banner_light.png">
-</picture>
+Sounds is an AI interview platform for creating custom voice interview agents and running
+LiveKit interview sessions from a web dashboard.
 
-<!--END_BANNER_IMAGE-->
-<br />
+The repository combines:
 
-![PyPI - Version](https://img.shields.io/pypi/v/livekit-agents)
-[![PyPI Downloads](https://static.pepy.tech/badge/livekit-agents/month)](https://pepy.tech/projects/livekit-agents)
-[![Slack community](https://img.shields.io/endpoint?url=https%3A%2F%2Flivekit.io%2Fbadges%2Fslack)](https://livekit.io/join-slack)
-[![Twitter Follow](https://img.shields.io/twitter/follow/livekit)](https://twitter.com/livekit)
-[![Ask DeepWiki for understanding the codebase](https://deepwiki.com/badge.svg)](https://deepwiki.com/livekit/agents)
-[![License](https://img.shields.io/github/license/livekit/livekit)](https://github.com/livekit/livekit/blob/master/LICENSE)
-
-<br />
-
-Looking for the JS/TS library? Check out [AgentsJS](https://github.com/livekit/agents-js)
-
-## What is Agents?
-
-<!--BEGIN_DESCRIPTION-->
-
-The Agent Framework is designed for building realtime, programmable participants
-that run on servers. Use it to create conversational, multi-modal voice
-agents that can see, hear, and understand.
-
-<!--END_DESCRIPTION-->
+- a FastAPI backend for agent CRUD, session orchestration, LiveKit token generation, transcripts,
+  and basic evaluation endpoints
+- a Next.js dashboard for creating agents, browsing the library, and joining interview rooms
+- a LiveKit voice agent built on the local `livekit-agents` workspace and provider plugins
+- bundled LiveKit Agents and plugin source packages for local SDK development
 
 ## Features
 
-- **Flexible integrations**: A comprehensive ecosystem to mix and match the right STT, LLM, TTS, and Realtime API to suit your use case.
-- **Integrated job scheduling**: Built-in task scheduling and distribution with [dispatch APIs](https://docs.livekit.io/agents/build/dispatch/) to connect end users to agents.
-- **Extensive WebRTC clients**: Build client applications using LiveKit's open-source SDK ecosystem, supporting all major platforms.
-- **Telephony integration**: Works seamlessly with LiveKit's [telephony stack](https://docs.livekit.io/sip/), allowing your agent to make calls to or receive calls from phones.
-- **Exchange data with clients**: Use [RPCs](https://docs.livekit.io/home/client/data/rpc/) and other [Data APIs](https://docs.livekit.io/home/client/data/) to seamlessly exchange data with clients.
-- **Semantic turn detection**: Uses a transformer model to detect when a user is done with their turn, helps to reduce interruptions.
-- **MCP support**: Native support for MCP. Integrate tools provided by MCP servers with one line of code.
-- **Builtin test framework**: Write tests and use judges to ensure your agent is performing as expected.
-- **Open-source**: Fully open-source, allowing you to run the entire stack on your own servers, including [LiveKit server](https://github.com/livekit/livekit), one of the most widely used WebRTC media servers.
+- Create interview agents with a role, company, difficulty, interview type, topics, voice, and
+  custom system instructions.
+- Start LiveKit rooms from the dashboard and dispatch an interview worker automatically.
+- Run real-time voice interviews with ElevenLabs speech, Anthropic Claude, Silero VAD, and LiveKit.
+- Capture session metadata and transcript entries in SQLite.
+- Use the local LiveKit Agents framework and plugin packages directly from the workspace.
 
-## Installation
+## Repository Layout
 
-To install the core Agents library, along with plugins for popular model providers:
+```text
+backend/                         FastAPI app and SQLite persistence
+dashboard/                       Next.js dashboard
+examples/voice_agents/           Runnable LiveKit voice agents
+livekit-agents/                  Local LiveKit Agents framework package
+livekit-plugins/                 Local provider plugin packages
+pipecat-outbound/                Legacy/experimental Pipecat outbound bot
+tests/                           LiveKit Agents test suite
+```
+
+The active interview worker is `examples/voice_agents/interview_agent.py`. The backend dispatches
+that worker when a user starts a room from the dashboard.
+
+## Requirements
+
+- Python 3.12+
+- Node.js 20+
+- uv
+- LiveKit Cloud project or a self-hosted LiveKit server
+- API keys for the providers you use
+
+Minimum provider keys for the current LiveKit interview flow:
 
 ```bash
-pip install "livekit-agents[openai,silero,deepgram,cartesia,turn-detector]"
+LIVEKIT_URL=wss://your-project.livekit.cloud
+LIVEKIT_API_KEY=your_livekit_api_key
+LIVEKIT_API_SECRET=your_livekit_api_secret
+ANTHROPIC_API_KEY=your_anthropic_api_key
+ELEVEN_API_KEY=your_elevenlabs_api_key
 ```
 
-## Docs and guides
+`ELEVENLABS_API_KEY` is also accepted by the interview agent. Optional values include
+`ANTHROPIC_MODEL`, `CLAUDE_MODEL`, `ELEVEN_VOICE_ID`, and `INTERVIEW_DB_PATH`.
 
-Documentation on the framework and how to use it can be found [here](https://docs.livekit.io/agents/)
+## Local Setup
 
-### Building with AI coding agents
+Install Python dependencies from the repository root:
 
-If you're using an AI coding assistant to build with LiveKit Agents, we recommend the following setup for the best results:
-
-1. **Install the [LiveKit Docs MCP server](https://docs.livekit.io/mcp)** — Gives your coding agent access to up-to-date LiveKit documentation, code search across LiveKit repositories, and working examples.
-
-2. **Install the [LiveKit Agent Skill](https://github.com/livekit/agent-skills)** — Provides your coding agent with architectural guidance and best practices for building voice AI applications, including workflow design, handoffs, tasks, and testing patterns.
-
-   ```shell
-   npx skills add livekit/agent-skills --skill livekit-agents
-   ```
-
-The Agent Skill works best alongside the MCP server: the skill teaches your agent *how to approach* building with LiveKit, while the MCP server provides the *current API details* to implement it correctly.
-
-## Core concepts
-
-- Agent: An LLM-based application with defined instructions.
-- AgentSession: A container for agents that manages interactions with end users.
-- entrypoint: The starting point for an interactive session, similar to a request handler in a web server.
-- AgentServer: The main process that coordinates job scheduling and launches agents for user sessions.
-
-## Usage
-
-### Simple voice agent
-
----
-
-```python
-from livekit.agents import (
-    Agent,
-    AgentServer,
-    AgentSession,
-    JobContext,
-    RunContext,
-    cli,
-    function_tool,
-    inference,
-)
-from livekit.plugins import silero
-
-
-@function_tool
-async def lookup_weather(
-    context: RunContext,
-    location: str,
-):
-    """Used to look up weather information."""
-
-    return {"weather": "sunny", "temperature": 70}
-
-
-server = AgentServer()
-
-
-@server.rtc_session()
-async def entrypoint(ctx: JobContext):
-    session = AgentSession(
-        vad=silero.VAD.load(),
-        # any combination of STT, LLM, TTS, or realtime API can be used
-        # this example shows LiveKit Inference, a unified API to access different models via LiveKit Cloud
-        # to use model provider keys directly, replace with the following:
-        # from livekit.plugins import deepgram, openai, cartesia
-        # stt=deepgram.STT(model="nova-3"),
-        # llm=openai.LLM(model="gpt-4.1-mini"),
-        # tts=cartesia.TTS(model="sonic-3", voice="9626c31c-bec5-4cca-baa8-f8ba9e84c8bc"),
-        stt=inference.STT("deepgram/nova-3", language="multi"),
-        llm=inference.LLM("openai/gpt-4.1-mini"),
-        tts=inference.TTS("cartesia/sonic-3", voice="9626c31c-bec5-4cca-baa8-f8ba9e84c8bc"),
-    )
-
-    agent = Agent(
-        instructions="You are a friendly voice assistant built by LiveKit.",
-        tools=[lookup_weather],
-    )
-
-    await session.start(agent=agent, room=ctx.room)
-    await session.generate_reply(instructions="greet the user and ask about their day")
-
-
-if __name__ == "__main__":
-    cli.run_app(server)
+```bash
+make install
 ```
 
-You'll need the following environment variables for this example:
+Install dashboard dependencies:
 
-- LIVEKIT_URL
-- LIVEKIT_API_KEY
-- LIVEKIT_API_SECRET
-
-### Multi-agent handoff
-
----
-
-This code snippet is abbreviated. For the full example, see [multi_agent.py](examples/voice_agents/multi_agent.py)
-
-```python
-...
-class IntroAgent(Agent):
-    def __init__(self) -> None:
-        super().__init__(
-            instructions=f"You are a story teller. Your goal is to gather a few pieces of information from the user to make the story personalized and engaging."
-            "Ask the user for their name and where they are from"
-        )
-
-    async def on_enter(self):
-        self.session.generate_reply(instructions="greet the user and gather information")
-
-    @function_tool
-    async def information_gathered(
-        self,
-        context: RunContext,
-        name: str,
-        location: str,
-    ):
-        """Called when the user has provided the information needed to make the story personalized and engaging.
-
-        Args:
-            name: The name of the user
-            location: The location of the user
-        """
-
-        context.userdata.name = name
-        context.userdata.location = location
-
-        story_agent = StoryAgent(name, location)
-        return story_agent, "Let's start the story!"
-
-
-class StoryAgent(Agent):
-    def __init__(self, name: str, location: str) -> None:
-        super().__init__(
-            instructions=f"You are a storyteller. Use the user's information in order to make the story personalized."
-            f"The user's name is {name}, from {location}",
-            # override the default model, switching to Realtime API from standard LLMs
-            llm=openai.realtime.RealtimeModel(voice="echo"),
-            chat_ctx=chat_ctx,
-        )
-
-    async def on_enter(self):
-        self.session.generate_reply()
-
-
-@server.rtc_session()
-async def entrypoint(ctx: JobContext):
-    userdata = StoryData()
-    session = AgentSession[StoryData](
-        vad=silero.VAD.load(),
-        stt="deepgram/nova-3",
-        llm="openai/gpt-4.1-mini",
-        tts="cartesia/sonic-3:9626c31c-bec5-4cca-baa8-f8ba9e84c8bc",
-        userdata=userdata,
-    )
-
-    await session.start(
-        agent=IntroAgent(),
-        room=ctx.room,
-    )
-...
+```bash
+cd dashboard
+npm install
 ```
 
-### Testing
+Create a root `.env` file with the LiveKit and provider variables listed above.
 
-Automated tests are essential for building reliable agents, especially with the non-deterministic behavior of LLMs. LiveKit Agents include native test integration to help you create dependable agents.
+## Run Locally
 
-```python
-@pytest.mark.asyncio
-async def test_no_availability() -> None:
-    llm = google.LLM()
-    async with AgentSession(llm=llm) as sess:
-        await sess.start(MyAgent())
-        result = await sess.run(
-            user_input="Hello, I need to place an order."
-        )
-        result.expect.skip_next_event_if(type="message", role="assistant")
-        result.expect.next_event().is_function_call(name="start_order")
-        result.expect.next_event().is_function_call_output()
-        await (
-            result.expect.next_event()
-            .is_message(role="assistant")
-            .judge(llm, intent="assistant should be asking the user what they would like")
-        )
+Start the backend from the repository root:
 
+```bash
+uv run uvicorn backend.main:app --reload --port 8000
 ```
 
-## Examples
+Start the dashboard in another terminal:
 
-For more examples and detailed setup instructions, see the [examples directory](examples/). For even more examples, see the [python-agents-examples](https://github.com/livekit-examples/python-agents-examples) repository.
-
-<table>
-<tr>
-<td width="50%">
-<h3>🎙️ Starter Agent</h3>
-<p>A starter agent optimized for voice conversations.</p>
-<p>
-<a href="examples/voice_agents/basic_agent.py">Code</a>
-</p>
-</td>
-<td width="50%">
-<h3>🔄 Multi-user push to talk</h3>
-<p>Responds to multiple users in the room via push-to-talk.</p>
-<p>
-<a href="examples/voice_agents/push_to_talk.py">Code</a>
-</p>
-</td>
-</tr>
-
-<tr>
-<td width="50%">
-<h3>🎵 Background audio</h3>
-<p>Background ambient and thinking audio to improve realism.</p>
-<p>
-<a href="examples/voice_agents/background_audio.py">Code</a>
-</p>
-</td>
-<td width="50%">
-<h3>🛠️ Dynamic tool creation</h3>
-<p>Creating function tools dynamically.</p>
-<p>
-<a href="examples/voice_agents/dynamic_tool_creation.py">Code</a>
-</p>
-</td>
-</tr>
-
-<tr>
-<td width="50%">
-<h3>☎️ Outbound caller</h3>
-<p>Agent that makes outbound phone calls</p>
-<p>
-<a href="https://github.com/livekit-examples/outbound-caller-python">Code</a>
-</p>
-</td>
-<td width="50%">
-<h3>📋 Structured output</h3>
-<p>Using structured output from LLM to guide TTS tone.</p>
-<p>
-<a href="examples/voice_agents/structured_output.py">Code</a>
-</p>
-</td>
-</tr>
-
-<tr>
-<td width="50%">
-<h3>🔌 MCP support</h3>
-<p>Use tools from MCP servers</p>
-<p>
-<a href="examples/voice_agents/mcp">Code</a>
-</p>
-</td>
-<td width="50%">
-<h3>💬 Text-only agent</h3>
-<p>Skip voice altogether and use the same code for text-only integrations</p>
-<p>
-<a href="examples/other/text_only.py">Code</a>
-</p>
-</td>
-</tr>
-
-<tr>
-<td width="50%">
-<h3>📝 Multi-user transcriber</h3>
-<p>Produce transcriptions from all users in the room</p>
-<p>
-<a href="examples/other/transcription/multi-user-transcriber.py">Code</a>
-</p>
-</td>
-<td width="50%">
-<h3>🎥 Video avatars</h3>
-<p>Add an AI avatar with Tavus, Bithuman, LemonSlice, and more</p>
-<p>
-<a href="examples/avatar_agents/">Code</a>
-</p>
-</td>
-</tr>
-
-<tr>
-<td width="50%">
-<h3>🍽️ Restaurant ordering and reservations</h3>
-<p>Full example of an agent that handles calls for a restaurant.</p>
-<p>
-<a href="examples/voice_agents/restaurant_agent.py">Code</a>
-</p>
-</td>
-<td width="50%">
-<h3>👁️ Gemini Live vision</h3>
-<p>Full example (including iOS app) of Gemini Live agent that can see.</p>
-<p>
-<a href="https://github.com/livekit-examples/vision-demo">Code</a>
-</p>
-</td>
-</tr>
-
-</table>
-
-## Running your agent
-
-### Testing in terminal
-
-```shell
-python myagent.py console
+```bash
+cd dashboard
+npm run dev
 ```
 
-Runs your agent in terminal mode, enabling local audio input and output for testing.
-This mode doesn't require external servers or dependencies and is useful for quickly validating behavior.
+Open `http://localhost:3000`, create or select an interview agent, and start an interview. The API
+runs on `http://localhost:8000`.
 
-### Developing with LiveKit clients
+The backend stores data in `backend/interview.db` by default. Set `INTERVIEW_DB_PATH` to use a
+different SQLite database path.
 
-```shell
-python myagent.py dev
+## Docker
+
+Run the backend and dashboard together:
+
+```bash
+docker compose up --build
 ```
 
-Starts the agent server and enables hot reloading when files change. This mode allows each process to host multiple concurrent agents efficiently.
+Docker uses:
 
-The agent connects to LiveKit Cloud or your self-hosted server. Set the following environment variables:
-- LIVEKIT_URL
-- LIVEKIT_API_KEY
-- LIVEKIT_API_SECRET
+- backend: `http://localhost:8000`
+- dashboard: `http://localhost:3000`
+- SQLite volume: `backend-data`
 
-You can connect using any LiveKit client SDK or telephony integration.
-To get started quickly, try the [Agents Playground](https://agents-playground.livekit.io/).
+Set the same environment variables in your shell or a Docker Compose `.env` file before starting.
 
-### Running for production
+## API Overview
 
-```shell
-python myagent.py start
+Common backend endpoints:
+
+- `GET /health`
+- `GET /agents`
+- `POST /agents`
+- `PATCH /agents/{agent_id}`
+- `DELETE /agents/{agent_id}`
+- `POST /agents/{agent_id}/join-room`
+- `GET /sessions`
+- `GET /sessions/{session_id}/transcript`
+- `POST /sessions/{session_id}/transcript`
+- `GET /stats`
+
+Interactive API docs are available at `http://localhost:8000/docs` while the backend is running.
+
+## Development Commands
+
+```bash
+make format          # Format Python code with ruff
+make lint            # Run ruff checks
+make type-check      # Run mypy checks
+make check           # Run format-check, lint, and type-check
+uv run pytest        # Run tests
 ```
 
-Runs the agent with production-ready optimizations.
+Dashboard commands:
 
-## Contributing
-
-The Agents framework is under active development in a rapidly evolving field. We welcome and appreciate contributions of any kind, be it feedback, bugfixes, features, new plugins and tools, or better documentation. You can file issues under this repo, open a PR, or chat with us in the [LiveKit community](https://docs.livekit.io/intro/community/).
-
-### Development setup
-
-This project uses [uv](https://docs.astral.sh/uv/) for package management. To install dependencies for development:
-
-```shell
-uv sync --all-extras --dev
+```bash
+cd dashboard
+npm run lint
+npm run build
 ```
 
-### Examples
+## Notes
 
-This project includes many examples in the [`examples`](examples/) directory. To run them, create the file `examples/.env` with credentials for LiveKit Server and any necessary model providers (see `examples/.env.example`), then run:
+- `pipecat-outbound/` is kept in the repository, but the current dashboard flow uses the LiveKit
+  worker in `examples/voice_agents/interview_agent.py`.
+- If LiveKit dependencies or `LIVEKIT_URL` are unavailable, the backend can return mock room data
+  for UI testing, but real calls require valid LiveKit credentials.
+- Agent worker logs are written under `logs/` when the backend dispatches an interview worker.
 
-```shell
-uv run examples/voice_agents/basic_agent.py dev
-```
+## License
 
-For more information, see the [examples README](examples/README.md).
-
-### Tests
-
-Unit tests are in the `tests` directory and can be run with:
-
-```shell
-uv run pytest tests/test_tools.py
-```
-
-Integration tests for each plugin require various API credentials and run automatically in GitHub CI for PRs submitted by project maintainers. See the [tests workflow](.github/workflows/tests.yml) for details.
-
-### Formatting
-
-This project uses [ruff](https://github.com/astral-sh/ruff) for formatting and linting:
-
-```shell
-uv run ruff format
-uv run ruff check --fix
-```
-
-### Documentation
-
-To generate docs locally with [pdoc](https://github.com/pdoc3/pdoc):
-
-```shell
-uv sync --all-extras --group docs
-uv run --active pdoc --skip-errors --html --output-dir=docs livekit
-```
-
-<!--BEGIN_REPO_NAV-->
-<br/><table>
-<thead><tr><th colspan="2">LiveKit Ecosystem</th></tr></thead>
-<tbody>
-<tr><td>Agents SDKs</td><td><b>Python</b> · <a href="https://github.com/livekit/agents-js">Node.js</a></td></tr><tr></tr>
-<tr><td>LiveKit SDKs</td><td><a href="https://github.com/livekit/client-sdk-js">Browser</a> · <a href="https://github.com/livekit/client-sdk-swift">Swift</a> · <a href="https://github.com/livekit/client-sdk-android">Android</a> · <a href="https://github.com/livekit/client-sdk-flutter">Flutter</a> · <a href="https://github.com/livekit/client-sdk-react-native">React Native</a> · <a href="https://github.com/livekit/rust-sdks">Rust</a> · <a href="https://github.com/livekit/node-sdks">Node.js</a> · <a href="https://github.com/livekit/python-sdks">Python</a> · <a href="https://github.com/livekit/client-sdk-unity">Unity</a> · <a href="https://github.com/livekit/client-sdk-unity-web">Unity (WebGL)</a> · <a href="https://github.com/livekit/client-sdk-esp32">ESP32</a> · <a href="https://github.com/livekit/client-sdk-cpp">C++</a></td></tr><tr></tr>
-<tr><td>Starter Apps</td><td><a href="https://github.com/livekit-examples/agent-starter-python">Python Agent</a> · <a href="https://github.com/livekit-examples/agent-starter-node">TypeScript Agent</a> · <a href="https://github.com/livekit-examples/agent-starter-react">React App</a> · <a href="https://github.com/livekit-examples/agent-starter-swift">SwiftUI App</a> · <a href="https://github.com/livekit-examples/agent-starter-android">Android App</a> · <a href="https://github.com/livekit-examples/agent-starter-flutter">Flutter App</a> · <a href="https://github.com/livekit-examples/agent-starter-react-native">React Native App</a> · <a href="https://github.com/livekit-examples/agent-starter-embed">Web Embed</a></td></tr><tr></tr>
-<tr><td>UI Components</td><td><a href="https://github.com/livekit/components-js">React</a> · <a href="https://github.com/livekit/components-android">Android Compose</a> · <a href="https://github.com/livekit/components-swift">SwiftUI</a> · <a href="https://github.com/livekit/components-flutter">Flutter</a></td></tr><tr></tr>
-<tr><td>Server APIs</td><td><a href="https://github.com/livekit/node-sdks">Node.js</a> · <a href="https://github.com/livekit/server-sdk-go">Golang</a> · <a href="https://github.com/livekit/server-sdk-ruby">Ruby</a> · <a href="https://github.com/livekit/server-sdk-kotlin">Java/Kotlin</a> · <a href="https://github.com/livekit/python-sdks">Python</a> · <a href="https://github.com/livekit/rust-sdks">Rust</a> · <a href="https://github.com/agence104/livekit-server-sdk-php">PHP (community)</a> · <a href="https://github.com/pabloFuente/livekit-server-sdk-dotnet">.NET (community)</a></td></tr><tr></tr>
-<tr><td>Resources</td><td><a href="https://docs.livekit.io">Docs</a> · <a href="https://docs.livekit.io/mcp">Docs MCP Server</a> · <a href="https://github.com/livekit/livekit-cli">CLI</a> · <a href="https://cloud.livekit.io">LiveKit Cloud</a></td></tr><tr></tr>
-<tr><td>LiveKit Server OSS</td><td><a href="https://github.com/livekit/livekit">LiveKit server</a> · <a href="https://github.com/livekit/egress">Egress</a> · <a href="https://github.com/livekit/ingress">Ingress</a> · <a href="https://github.com/livekit/sip">SIP</a></td></tr><tr></tr>
-<tr><td>Community</td><td><a href="https://community.livekit.io">Developer Community</a> · <a href="https://livekit.io/join-slack">Slack</a> · <a href="https://x.com/livekit">X</a> · <a href="https://www.youtube.com/@livekit_io">YouTube</a></td></tr>
-</tbody>
-</table>
-<!--END_REPO_NAV-->
+This repository includes LiveKit Agents source and examples. See `LICENSE` and `NOTICE` for the
+included licensing information.
