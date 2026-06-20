@@ -110,6 +110,29 @@ Docker uses:
 
 Set the same environment variables in your shell or a Docker Compose `.env` file before starting.
 
+## Railway Deployment
+
+Deploy the app as two Railway services:
+
+1. Backend service
+   - Root directory: repo root
+   - Dockerfile: `Dockerfile.backend`
+   - Required env vars: `LIVEKIT_URL`, `LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET`, `ANTHROPIC_API_KEY`,
+     `ELEVEN_API_KEY` or `ELEVENLABS_API_KEY`
+2. Frontend service
+   - Root directory: `dashboard/`
+   - Dockerfile: `Dockerfile`
+   - Required env vars: `BACKEND_URL=<public backend URL>`
+
+Then set the backend CORS env var to allow the frontend origin:
+
+```bash
+ALLOWED_ORIGINS=<public frontend URL>
+```
+
+The frontend proxies requests through `/api/backend`. The Next.js rewrite reads `BACKEND_URL` during
+the Docker build, so redeploy the frontend after changing the backend URL.
+
 ## API Overview
 
 Common backend endpoints:
