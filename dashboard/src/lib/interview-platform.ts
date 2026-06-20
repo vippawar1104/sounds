@@ -74,7 +74,7 @@ export interface AgentDraft {
 const API_BASE =
   process.env.NEXT_PUBLIC_API_BASE_URL ??
   process.env.NEXT_PUBLIC_API_URL ??
-  "http://127.0.0.1:8000";
+  "/api/backend";  // falls back to Next.js proxy → BACKEND_URL env var (set in Railway)
 
 export const agentTypeMeta: Record<InterviewType, { label: string; accent: string; soft: string; blurb: string }> = {
   technical: {
